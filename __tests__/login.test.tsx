@@ -1,5 +1,4 @@
 import "@testing-library/jest-dom";
-import "@testing-library/react";
 import { render, fireEvent, screen, waitFor } from "@testing-library/react";
 import LoginPage from "../src/app/login/page";
 
@@ -13,7 +12,7 @@ jest.mock("react-hot-toast", () => ({
 }));
 
 // Mock fetch
-global.fetch = jest.fn() as jest.Mock;
+global.fetch = jest.fn();
 
 describe("LoginPage", () => {
   beforeEach(() => {
@@ -67,20 +66,18 @@ describe("LoginPage", () => {
 
   it("should update email input value when typed", () => {
     render(<LoginPage />);
-    const emailInput = screen.getByLabelText(/email/i) as HTMLInputElement;
+    const emailInput = screen.getByLabelText(/email/i);
 
     fireEvent.change(emailInput, { target: { value: "test@example.com" } });
-    expect(emailInput.value).toBe("test@example.com");
+    expect(emailInput).toHaveValue("test@example.com");
   });
 
   it("should update password input value when typed", () => {
     render(<LoginPage />);
-    const passwordInput = screen.getByLabelText(
-      /password/i
-    ) as HTMLInputElement;
+    const passwordInput = screen.getByLabelText(/password/i);
 
     fireEvent.change(passwordInput, { target: { value: "password123" } });
-    expect(passwordInput.value).toBe("password123");
+    expect(passwordInput).toHaveValue("password123");
   });
 
   it("should call API and show success message on successful login", async () => {
@@ -169,5 +166,187 @@ describe("LoginPage", () => {
 
     // Errors should be cleared
     expect(screen.queryByText(/email is required/i)).not.toBeInTheDocument();
+  });
+
+  it("should render change password link", () => {
+    render(<LoginPage />);
+    const changePasswordLink = screen.getByText(
+      "Forgot your password? Change it here"
+    );
+    expect(changePasswordLink).toBeInTheDocument();
+    expect(changePasswordLink.closest("a")).toHaveAttribute("href", "/change-password");
+  });
+
+  it("should handle form submission with empty email and password", async () => {
+    render(<LoginPage />);
+    const submitButton = screen.getByRole("button", { name: /login/i });
+
+    fireEvent.click(submitButton);
+
+    expect(screen.getByText(/email is required/i)).toBeInTheDocument();
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("should handle API error with default message", async () => {
+    const { toast } = require("react-hot-toast");
+    const mockResponse = {
+      ok: false,
+      json: jest.fn().mockResolvedValue({}), // No message property
+    };
+    (fetch as jest.MockedFunction<typeof fetch>).mockResolvedValue(mockResponse as any);
+
+    render(<LoginPage />);
+    const emailInput = screen.getByLabelText(/email/i);
+    const passwordInput = screen.getByLabelText(/password/i);
+    const submitButton = screen.getByRole("button", { name: /login/i });
+
+    fireEvent.change(emailInput, { target: { value: "test@example.com" } });
+    fireEvent.change(passwordInput, { target: { value: "password123" } });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith("An error occurred.", { id: "toast-id" });
+    });
+  });
+
+  it("should handle network error gracefully", async () => {
+    (fetch as jest.MockedFunction<typeof fetch>).mockRejectedValue(new Error("Network error"));
+
+    render(<LoginPage />);
+    const emailInput = screen.getByLabelText(/email/i);
+    const passwordInput = screen.getByLabelText(/password/i);
+    const submitButton = screen.getByRole("button", { name: /login/i });
+
+    fireEvent.change(emailInput, { target: { value: "test@example.com" } });
+    fireEvent.change(passwordInput, { target: { value: "password123" } });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalled();
+    });
+  });
+
+  it("should show loading toast during API call", async () => {
+    const { toast } = require("react-hot-toast");
+    const mockResponse = {
+      ok: true,
+      json: jest.fn().mockResolvedValue({ message: "Login successful!" }),
+    };
+    (fetch as jest.MockedFunction<typeof fetch>).mockResolvedValue(mockResponse as any);
+
+    render(<LoginPage />);
+    const emailInput = screen.getByLabelText(/email/i);
+    const passwordInput = screen.getByLabelText(/password/i);
+    const submitButton = screen.getByRole("button", { name: /login/i });
+
+    fireEvent.change(emailInput, { target: { value: "test@example.com" } });
+    fireEvent.change(passwordInput, { target: { value: "password123" } });
+    fireEvent.click(submitButton);
+
+    expect(toast.loading).toHaveBeenCalledWith("Logging in...");
+  });
+
+  it("should clear previous errors when form becomes valid", async () => {
+    render(<LoginPage />);
+    const emailInput = screen.getByLabelText(/email/i);
+    const passwordInput = screen.getByLabelText(/password/i);
+    const submitButton = screen.getByRole("button", { name: /login/i });
+
+    // First, trigger validation errors
+    fireEvent.click(submitButton);
+    expect(screen.getByText(/email is required/i)).toBeInTheDocument();
+
+    // Then make form valid
+    fireEvent.change(emailInput, { target: { value: "test@example.com" } });
+    fireEvent.change(passwordInput, { target: { value: "validpassword" } });
+
+    // Submit again with valid data
+    const mockResponse = {
+      ok: true,
+      json: jest.fn().mockResolvedValue({ message: "Login successful!" }),
+    };
+    (fetch as jest.MockedFunction<typeof fetch>).mockResolvedValue(mockResponse as any);
+
+    fireEvent.click(submitButton);
+
+    // Errors should be cleared
+    await waitFor(() => {
+      expect(screen.queryByText(/email is required/i)).not.toBeInTheDocument();
+    });
+  });
+
+  it("should validate password length correctly", () => {
+    render(<LoginPage />);
+    const emailInput = screen.getByLabelText(/email/i);
+    const passwordInput = screen.getByLabelText(/password/i);
+    const submitButton = screen.getByRole("button", { name: /login/i });
+
+    fireEvent.change(emailInput, { target: { value: "test@example.com" } });
+    fireEvent.change(passwordInput, { target: { value: "123" } });
+    fireEvent.click(submitButton);
+
+    expect(screen.getByText(/password must be at least 6 characters/i)).toBeInTheDocument();
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("should accept valid 6-character password", async () => {
+    const mockResponse = {
+      ok: true,
+      json: jest.fn().mockResolvedValue({ message: "Login successful!" }),
+    };
+    (fetch as jest.MockedFunction<typeof fetch>).mockResolvedValue(mockResponse as any);
+
+    render(<LoginPage />);
+    const emailInput = screen.getByLabelText(/email/i);
+    const passwordInput = screen.getByLabelText(/password/i);
+    const submitButton = screen.getByRole("button", { name: /login/i });
+
+    fireEvent.change(emailInput, { target: { value: "test@example.com" } });
+    fireEvent.change(passwordInput, { target: { value: "123456" } }); // Exactly 6 characters
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalled();
+    });
+    expect(screen.queryByText(/password must be at least 6 characters/i)).not.toBeInTheDocument();
+  });
+
+  it("should toggle password visibility with correct aria-label", () => {
+    render(<LoginPage />);
+    const passwordInput = screen.getByLabelText(/password/i);
+    
+    // Initially should show "Show password" button
+    const showButton = screen.getByLabelText(/show password/i);
+    expect(showButton).toBeInTheDocument();
+    expect(passwordInput).toHaveAttribute("type", "password");
+
+    // Click to show password
+    fireEvent.click(showButton);
+    expect(passwordInput).toHaveAttribute("type", "text");
+    
+    // Now should show "Hide password" button
+    const hideButton = screen.getByLabelText(/hide password/i);
+    expect(hideButton).toBeInTheDocument();
+
+    // Click to hide password again
+    fireEvent.click(hideButton);
+    expect(passwordInput).toHaveAttribute("type", "password");
+  });
+
+  it("should handle form reset state correctly", () => {
+    render(<LoginPage />);
+    const emailInput = screen.getByLabelText(/email/i);
+    const passwordInput = screen.getByLabelText(/password/i);
+
+    // Initial state should be empty
+    expect(emailInput).toHaveValue("");
+    expect(passwordInput).toHaveValue("");
+
+    // Change values
+    fireEvent.change(emailInput, { target: { value: "test@example.com" } });
+    fireEvent.change(passwordInput, { target: { value: "password123" } });
+
+    expect(emailInput).toHaveValue("test@example.com");
+    expect(passwordInput).toHaveValue("password123");
   });
 });

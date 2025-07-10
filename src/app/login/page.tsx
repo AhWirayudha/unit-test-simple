@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "react-hot-toast";
+import Link from "next/link";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -127,6 +128,15 @@ export default function LoginPage() {
             </button>
           </div>
         </form>
+
+        <div className="text-center">
+          <Link
+            href="/change-password"
+            className="text-sm text-indigo-600 hover:text-indigo-500"
+          >
+            Forgot your password? Change it here
+          </Link>
+        </div>
       </div>
     </div>
   );
