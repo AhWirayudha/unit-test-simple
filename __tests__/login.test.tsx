@@ -174,7 +174,10 @@ describe("LoginPage", () => {
       "Forgot your password? Change it here"
     );
     expect(changePasswordLink).toBeInTheDocument();
-    expect(changePasswordLink.closest("a")).toHaveAttribute("href", "/change-password");
+    expect(changePasswordLink.closest("a")).toHaveAttribute(
+      "href",
+      "/change-password"
+    );
   });
 
   it("should handle form submission with empty email and password", async () => {
@@ -193,7 +196,9 @@ describe("LoginPage", () => {
       ok: false,
       json: jest.fn().mockResolvedValue({}), // No message property
     };
-    (fetch as jest.MockedFunction<typeof fetch>).mockResolvedValue(mockResponse as any);
+    (fetch as jest.MockedFunction<typeof fetch>).mockResolvedValue(
+      mockResponse as any
+    );
 
     render(<LoginPage />);
     const emailInput = screen.getByLabelText(/email/i);
@@ -205,12 +210,16 @@ describe("LoginPage", () => {
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith("An error occurred.", { id: "toast-id" });
+      expect(toast.error).toHaveBeenCalledWith("An error occurred.", {
+        id: "toast-id",
+      });
     });
   });
 
   it("should handle network error gracefully", async () => {
-    (fetch as jest.MockedFunction<typeof fetch>).mockRejectedValue(new Error("Network error"));
+    (fetch as jest.MockedFunction<typeof fetch>).mockRejectedValue(
+      new Error("Network error")
+    );
 
     render(<LoginPage />);
     const emailInput = screen.getByLabelText(/email/i);
@@ -232,7 +241,9 @@ describe("LoginPage", () => {
       ok: true,
       json: jest.fn().mockResolvedValue({ message: "Login successful!" }),
     };
-    (fetch as jest.MockedFunction<typeof fetch>).mockResolvedValue(mockResponse as any);
+    (fetch as jest.MockedFunction<typeof fetch>).mockResolvedValue(
+      mockResponse as any
+    );
 
     render(<LoginPage />);
     const emailInput = screen.getByLabelText(/email/i);
@@ -265,7 +276,9 @@ describe("LoginPage", () => {
       ok: true,
       json: jest.fn().mockResolvedValue({ message: "Login successful!" }),
     };
-    (fetch as jest.MockedFunction<typeof fetch>).mockResolvedValue(mockResponse as any);
+    (fetch as jest.MockedFunction<typeof fetch>).mockResolvedValue(
+      mockResponse as any
+    );
 
     fireEvent.click(submitButton);
 
@@ -285,7 +298,9 @@ describe("LoginPage", () => {
     fireEvent.change(passwordInput, { target: { value: "123" } });
     fireEvent.click(submitButton);
 
-    expect(screen.getByText(/password must be at least 6 characters/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/password must be at least 6 characters/i)
+    ).toBeInTheDocument();
     expect(fetch).not.toHaveBeenCalled();
   });
 
@@ -294,7 +309,9 @@ describe("LoginPage", () => {
       ok: true,
       json: jest.fn().mockResolvedValue({ message: "Login successful!" }),
     };
-    (fetch as jest.MockedFunction<typeof fetch>).mockResolvedValue(mockResponse as any);
+    (fetch as jest.MockedFunction<typeof fetch>).mockResolvedValue(
+      mockResponse as any
+    );
 
     render(<LoginPage />);
     const emailInput = screen.getByLabelText(/email/i);
@@ -308,13 +325,15 @@ describe("LoginPage", () => {
     await waitFor(() => {
       expect(fetch).toHaveBeenCalled();
     });
-    expect(screen.queryByText(/password must be at least 6 characters/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/password must be at least 6 characters/i)
+    ).not.toBeInTheDocument();
   });
 
   it("should toggle password visibility with correct aria-label", () => {
     render(<LoginPage />);
     const passwordInput = screen.getByLabelText(/password/i);
-    
+
     // Initially should show "Show password" button
     const showButton = screen.getByLabelText(/show password/i);
     expect(showButton).toBeInTheDocument();
@@ -323,7 +342,7 @@ describe("LoginPage", () => {
     // Click to show password
     fireEvent.click(showButton);
     expect(passwordInput).toHaveAttribute("type", "text");
-    
+
     // Now should show "Hide password" button
     const hideButton = screen.getByLabelText(/hide password/i);
     expect(hideButton).toBeInTheDocument();

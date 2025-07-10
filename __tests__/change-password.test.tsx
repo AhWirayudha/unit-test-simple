@@ -391,12 +391,12 @@ describe("ChangePasswordPage", () => {
     render(<ChangePasswordPage />);
     const loginLink = screen.getByText("back to login");
     expect(loginLink).toBeInTheDocument();
-    expect(loginLink.closest('a')).toHaveAttribute('href', '/login');
+    expect(loginLink.closest("a")).toHaveAttribute("href", "/login");
   });
 
   it("should handle input changes correctly", () => {
     render(<ChangePasswordPage />);
-    
+
     const emailInput = screen.getByLabelText(/email address/i);
     const currentPasswordInput = screen.getByLabelText(/current password/i);
     const newPasswordInput = screen.getByLabelText(/new password/i);
@@ -415,18 +415,24 @@ describe("ChangePasswordPage", () => {
 
   it("should validate email format", async () => {
     render(<ChangePasswordPage />);
-    
+
     const emailInput = screen.getByLabelText(/email address/i);
     const currentPasswordInput = screen.getByLabelText(/current password/i);
     const newPasswordInput = screen.getByLabelText(/new password/i);
     const confirmPasswordInput = screen.getByLabelText(/confirm new password/i);
 
     fireEvent.change(emailInput, { target: { value: "invalid-email" } });
-    fireEvent.change(currentPasswordInput, { target: { value: "password123" } });
+    fireEvent.change(currentPasswordInput, {
+      target: { value: "password123" },
+    });
     fireEvent.change(newPasswordInput, { target: { value: "newpassword123" } });
-    fireEvent.change(confirmPasswordInput, { target: { value: "newpassword123" } });
-    
-    const submitButton = screen.getByRole("button", { name: /change password/i });
+    fireEvent.change(confirmPasswordInput, {
+      target: { value: "newpassword123" },
+    });
+
+    const submitButton = screen.getByRole("button", {
+      name: /change password/i,
+    });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
@@ -436,39 +442,51 @@ describe("ChangePasswordPage", () => {
 
   it("should validate new password length", async () => {
     render(<ChangePasswordPage />);
-    
+
     const emailInput = screen.getByLabelText(/email address/i);
     const currentPasswordInput = screen.getByLabelText(/current password/i);
     const newPasswordInput = screen.getByLabelText(/new password/i);
     const confirmPasswordInput = screen.getByLabelText(/confirm new password/i);
 
     fireEvent.change(emailInput, { target: { value: "test@example.com" } });
-    fireEvent.change(currentPasswordInput, { target: { value: "password123" } });
+    fireEvent.change(currentPasswordInput, {
+      target: { value: "password123" },
+    });
     fireEvent.change(newPasswordInput, { target: { value: "123" } });
     fireEvent.change(confirmPasswordInput, { target: { value: "123" } });
-    
-    const submitButton = screen.getByRole("button", { name: /change password/i });
+
+    const submitButton = screen.getByRole("button", {
+      name: /change password/i,
+    });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(screen.getByText("New password must be at least 6 characters.")).toBeInTheDocument();
+      expect(
+        screen.getByText("New password must be at least 6 characters.")
+      ).toBeInTheDocument();
     });
   });
 
   it("should validate password confirmation", async () => {
     render(<ChangePasswordPage />);
-    
+
     const emailInput = screen.getByLabelText(/email address/i);
     const currentPasswordInput = screen.getByLabelText(/current password/i);
     const newPasswordInput = screen.getByLabelText(/new password/i);
     const confirmPasswordInput = screen.getByLabelText(/confirm new password/i);
 
     fireEvent.change(emailInput, { target: { value: "test@example.com" } });
-    fireEvent.change(currentPasswordInput, { target: { value: "password123" } });
+    fireEvent.change(currentPasswordInput, {
+      target: { value: "password123" },
+    });
     fireEvent.change(newPasswordInput, { target: { value: "newpassword123" } });
-    fireEvent.change(confirmPasswordInput, { target: { value: "different123" } });
-    
-    const submitButton = screen.getByRole("button", { name: /change password/i });
+    fireEvent.change(confirmPasswordInput, {
+      target: { value: "different123" },
+    });
+
+    const submitButton = screen.getByRole("button", {
+      name: /change password/i,
+    });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
@@ -478,48 +496,66 @@ describe("ChangePasswordPage", () => {
 
   it("should validate that new password is different from current", async () => {
     render(<ChangePasswordPage />);
-    
+
     const emailInput = screen.getByLabelText(/email address/i);
     const currentPasswordInput = screen.getByLabelText(/current password/i);
     const newPasswordInput = screen.getByLabelText(/new password/i);
     const confirmPasswordInput = screen.getByLabelText(/confirm new password/i);
 
     fireEvent.change(emailInput, { target: { value: "test@example.com" } });
-    fireEvent.change(currentPasswordInput, { target: { value: "samepassword123" } });
-    fireEvent.change(newPasswordInput, { target: { value: "samepassword123" } });
-    fireEvent.change(confirmPasswordInput, { target: { value: "samepassword123" } });
-    
-    const submitButton = screen.getByRole("button", { name: /change password/i });
+    fireEvent.change(currentPasswordInput, {
+      target: { value: "samepassword123" },
+    });
+    fireEvent.change(newPasswordInput, {
+      target: { value: "samepassword123" },
+    });
+    fireEvent.change(confirmPasswordInput, {
+      target: { value: "samepassword123" },
+    });
+
+    const submitButton = screen.getByRole("button", {
+      name: /change password/i,
+    });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(screen.getByText("New password must be different from current password.")).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          "New password must be different from current password."
+        )
+      ).toBeInTheDocument();
     });
   });
 
   it("should show confirm password error when empty", async () => {
     render(<ChangePasswordPage />);
-    
+
     const emailInput = screen.getByLabelText(/email address/i);
     const currentPasswordInput = screen.getByLabelText(/current password/i);
     const newPasswordInput = screen.getByLabelText(/new password/i);
 
     fireEvent.change(emailInput, { target: { value: "test@example.com" } });
-    fireEvent.change(currentPasswordInput, { target: { value: "password123" } });
+    fireEvent.change(currentPasswordInput, {
+      target: { value: "password123" },
+    });
     fireEvent.change(newPasswordInput, { target: { value: "newpassword123" } });
     // confirmPassword left empty
-    
-    const submitButton = screen.getByRole("button", { name: /change password/i });
+
+    const submitButton = screen.getByRole("button", {
+      name: /change password/i,
+    });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(screen.getByText("Please confirm your new password.")).toBeInTheDocument();
+      expect(
+        screen.getByText("Please confirm your new password.")
+      ).toBeInTheDocument();
     });
   });
 
   it("should toggle all password fields visibility independently", () => {
     render(<ChangePasswordPage />);
-    
+
     const currentPasswordInput = screen.getByLabelText(/current password/i);
     const newPasswordInput = screen.getByLabelText(/new password/i);
     const confirmPasswordInput = screen.getByLabelText(/confirm new password/i);
@@ -556,7 +592,7 @@ describe("ChangePasswordPage", () => {
     expect(hideButtons).toHaveLength(3);
 
     // Hide all
-    hideButtons.forEach(button => fireEvent.click(button));
+    hideButtons.forEach((button) => fireEvent.click(button));
     expect(currentPasswordInput).toHaveAttribute("type", "password");
     expect(newPasswordInput).toHaveAttribute("type", "password");
     expect(confirmPasswordInput).toHaveAttribute("type", "password");
@@ -569,7 +605,7 @@ describe("ChangePasswordPage", () => {
     } as Response);
 
     render(<ChangePasswordPage />);
-    
+
     const emailInput = screen.getByLabelText(/email address/i);
     const currentPasswordInput = screen.getByLabelText(/current password/i);
     const newPasswordInput = screen.getByLabelText(/new password/i);
@@ -615,112 +651,153 @@ describe("ChangePasswordPage", () => {
     } as Response);
 
     render(<ChangePasswordPage />);
-    
+
     const emailInput = screen.getByLabelText(/email address/i);
     const currentPasswordInput = screen.getByLabelText(/current password/i);
     const newPasswordInput = screen.getByLabelText(/new password/i);
     const confirmPasswordInput = screen.getByLabelText(/confirm new password/i);
 
     fireEvent.change(emailInput, { target: { value: "test@example.com" } });
-    fireEvent.change(currentPasswordInput, { target: { value: "wrongpassword" } });
+    fireEvent.change(currentPasswordInput, {
+      target: { value: "wrongpassword" },
+    });
     fireEvent.change(newPasswordInput, { target: { value: "newpassword123" } });
-    fireEvent.change(confirmPasswordInput, { target: { value: "newpassword123" } });
-    
-    const submitButton = screen.getByRole("button", { name: /change password/i });
+    fireEvent.change(confirmPasswordInput, {
+      target: { value: "newpassword123" },
+    });
+
+    const submitButton = screen.getByRole("button", {
+      name: /change password/i,
+    });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
       const { toast } = require("react-hot-toast");
-      expect(toast.error).toHaveBeenCalledWith("An error occurred.", { id: "toast-id" });
+      expect(toast.error).toHaveBeenCalledWith("An error occurred.", {
+        id: "toast-id",
+      });
     });
   });
 
   it("should clear validation errors when form becomes valid", async () => {
     render(<ChangePasswordPage />);
-    
+
     const emailInput = screen.getByLabelText(/email address/i);
     const currentPasswordInput = screen.getByLabelText(/current password/i);
     const newPasswordInput = screen.getByLabelText(/new password/i);
     const confirmPasswordInput = screen.getByLabelText(/confirm new password/i);
-    const submitButton = screen.getByRole("button", { name: /change password/i });
+    const submitButton = screen.getByRole("button", {
+      name: /change password/i,
+    });
 
     // First submit empty form to trigger validation errors
     fireEvent.click(submitButton);
 
     await waitFor(() => {
       expect(screen.getByText("Email is required.")).toBeInTheDocument();
-      expect(screen.getByText("Current password is required.")).toBeInTheDocument();
+      expect(
+        screen.getByText("Current password is required.")
+      ).toBeInTheDocument();
     });
 
     // Then fill form with valid data
     fireEvent.change(emailInput, { target: { value: "test@example.com" } });
-    fireEvent.change(currentPasswordInput, { target: { value: "password123" } });
+    fireEvent.change(currentPasswordInput, {
+      target: { value: "password123" },
+    });
     fireEvent.change(newPasswordInput, { target: { value: "newpassword123" } });
-    fireEvent.change(confirmPasswordInput, { target: { value: "newpassword123" } });
+    fireEvent.change(confirmPasswordInput, {
+      target: { value: "newpassword123" },
+    });
 
     // Mock successful response
     (fetch as jest.MockedFunction<typeof fetch>).mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ message: "Password updated successfully!", success: true }),
+      json: async () => ({
+        message: "Password updated successfully!",
+        success: true,
+      }),
     } as Response);
 
     fireEvent.click(submitButton);
 
     await waitFor(() => {
       expect(screen.queryByText("Email is required.")).not.toBeInTheDocument();
-      expect(screen.queryByText("Current password is required.")).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("Current password is required.")
+      ).not.toBeInTheDocument();
     });
   });
 
   it("should validate with minimum length password", async () => {
     render(<ChangePasswordPage />);
-    
+
     const emailInput = screen.getByLabelText(/email address/i);
     const currentPasswordInput = screen.getByLabelText(/current password/i);
     const newPasswordInput = screen.getByLabelText(/new password/i);
     const confirmPasswordInput = screen.getByLabelText(/confirm new password/i);
 
     fireEvent.change(emailInput, { target: { value: "test@example.com" } });
-    fireEvent.change(currentPasswordInput, { target: { value: "password123" } });
+    fireEvent.change(currentPasswordInput, {
+      target: { value: "password123" },
+    });
     fireEvent.change(newPasswordInput, { target: { value: "123456" } }); // exactly 6 chars
     fireEvent.change(confirmPasswordInput, { target: { value: "123456" } });
-    
+
     // Mock successful response
     (fetch as jest.MockedFunction<typeof fetch>).mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ message: "Password updated successfully!", success: true }),
+      json: async () => ({
+        message: "Password updated successfully!",
+        success: true,
+      }),
     } as Response);
 
-    const submitButton = screen.getByRole("button", { name: /change password/i });
+    const submitButton = screen.getByRole("button", {
+      name: /change password/i,
+    });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
       expect(fetch).toHaveBeenCalled();
     });
 
-    expect(screen.queryByText("New password must be at least 6 characters.")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("New password must be at least 6 characters.")
+    ).not.toBeInTheDocument();
   });
 
   it("should validate valid email format", async () => {
     render(<ChangePasswordPage />);
-    
+
     const emailInput = screen.getByLabelText(/email address/i);
     const currentPasswordInput = screen.getByLabelText(/current password/i);
     const newPasswordInput = screen.getByLabelText(/new password/i);
     const confirmPasswordInput = screen.getByLabelText(/confirm new password/i);
 
-    fireEvent.change(emailInput, { target: { value: "valid.email@domain.com" } });
-    fireEvent.change(currentPasswordInput, { target: { value: "password123" } });
+    fireEvent.change(emailInput, {
+      target: { value: "valid.email@domain.com" },
+    });
+    fireEvent.change(currentPasswordInput, {
+      target: { value: "password123" },
+    });
     fireEvent.change(newPasswordInput, { target: { value: "newpassword123" } });
-    fireEvent.change(confirmPasswordInput, { target: { value: "newpassword123" } });
-    
+    fireEvent.change(confirmPasswordInput, {
+      target: { value: "newpassword123" },
+    });
+
     // Mock successful response
     (fetch as jest.MockedFunction<typeof fetch>).mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ message: "Password updated successfully!", success: true }),
+      json: async () => ({
+        message: "Password updated successfully!",
+        success: true,
+      }),
     } as Response);
 
-    const submitButton = screen.getByRole("button", { name: /change password/i });
+    const submitButton = screen.getByRole("button", {
+      name: /change password/i,
+    });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
