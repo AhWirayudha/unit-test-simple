@@ -2,9 +2,9 @@ name: Run Unit Tests
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, feature/*, hotfix/*]  # Runs on more branch patterns
   pull_request:
-    branches: [main]
+    branches: [main, develop]                       # PRs to main and develop
   workflow_dispatch:
     inputs:
       node_version:
