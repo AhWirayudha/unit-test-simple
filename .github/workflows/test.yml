@@ -81,28 +81,43 @@ jobs:
         id: coverage
         if: matrix.node-version == '20.x' && (github.event_name != 'workflow_dispatch' || github.event.inputs.run_coverage == 'true')
         run: |
-          if [ -f coverage/lcov-report/index.html ]; then
-            # Extract coverage percentage from HTML report
-            COVERAGE=$(grep -o 'headerCovTableEntryLo">[0-9.]*%' coverage/lcov-report/index.html | head -1 | grep -o '[0-9.]*' || echo "N/A")
-            echo "percentage=$COVERAGE" >> $GITHUB_OUTPUT
+          if [ -f coverage/lcov.info ]; then
+            echo "Found lcov.info, extracting coverage data..."
             
             # Extract coverage details from lcov.info
-            if [ -f coverage/lcov.info ]; then
-              LINES_FOUND=$(grep -c "^LF:" coverage/lcov.info | head -1 || echo "0")
-              LINES_HIT=$(grep -c "^LH:" coverage/lcov.info | head -1 || echo "0")
-              FUNCTIONS_FOUND=$(grep -c "^FNF:" coverage/lcov.info | head -1 || echo "0")
-              FUNCTIONS_HIT=$(grep -c "^FNH:" coverage/lcov.info | head -1 || echo "0")
-              BRANCHES_FOUND=$(grep -c "^BRF:" coverage/lcov.info | head -1 || echo "0")
-              BRANCHES_HIT=$(grep -c "^BRH:" coverage/lcov.info | head -1 || echo "0")
-              
-              echo "lines_found=$LINES_FOUND" >> $GITHUB_OUTPUT
-              echo "lines_hit=$LINES_HIT" >> $GITHUB_OUTPUT
-              echo "functions_found=$FUNCTIONS_FOUND" >> $GITHUB_OUTPUT
-              echo "functions_hit=$FUNCTIONS_HIT" >> $GITHUB_OUTPUT
-              echo "branches_found=$BRANCHES_FOUND" >> $GITHUB_OUTPUT
-              echo "branches_hit=$BRANCHES_HIT" >> $GITHUB_OUTPUT
+            LINES_FOUND=$(awk '/^LF:/ {sum += $2} END {print sum+0}' coverage/lcov.info)
+            LINES_HIT=$(awk '/^LH:/ {sum += $2} END {print sum+0}' coverage/lcov.info)
+            FUNCTIONS_FOUND=$(awk '/^FNF:/ {sum += $2} END {print sum+0}' coverage/lcov.info)
+            FUNCTIONS_HIT=$(awk '/^FNH:/ {sum += $2} END {print sum+0}' coverage/lcov.info)
+            BRANCHES_FOUND=$(awk '/^BRF:/ {sum += $2} END {print sum+0}' coverage/lcov.info)
+            BRANCHES_HIT=$(awk '/^BRH:/ {sum += $2} END {print sum+0}' coverage/lcov.info)
+            
+            # Calculate coverage percentage
+            if [ "$LINES_FOUND" -gt 0 ]; then
+              COVERAGE=$(awk "BEGIN {printf \"%.1f\", ($LINES_HIT/$LINES_FOUND)*100}")
+            else
+              COVERAGE="0"
             fi
+            
+            echo "Lines: $LINES_HIT/$LINES_FOUND"
+            echo "Functions: $FUNCTIONS_HIT/$FUNCTIONS_FOUND" 
+            echo "Branches: $BRANCHES_HIT/$BRANCHES_FOUND"
+            echo "Coverage: $COVERAGE%"
+            
+            echo "percentage=$COVERAGE" >> $GITHUB_OUTPUT
+            echo "lines_found=$LINES_FOUND" >> $GITHUB_OUTPUT
+            echo "lines_hit=$LINES_HIT" >> $GITHUB_OUTPUT
+            echo "functions_found=$FUNCTIONS_FOUND" >> $GITHUB_OUTPUT
+            echo "functions_hit=$FUNCTIONS_HIT" >> $GITHUB_OUTPUT
+            echo "branches_found=$BRANCHES_FOUND" >> $GITHUB_OUTPUT
+            echo "branches_hit=$BRANCHES_HIT" >> $GITHUB_OUTPUT
+          elif [ -f coverage/lcov-report/index.html ]; then
+            echo "Found HTML report, extracting coverage percentage..."
+            # Extract coverage percentage from HTML report as fallback
+            COVERAGE=$(grep -o 'headerCovTableEntryLo">[0-9.]*%\|headerCovTableEntryHi">[0-9.]*%' coverage/lcov-report/index.html | head -1 | grep -o '[0-9.]*' || echo "N/A")
+            echo "percentage=$COVERAGE" >> $GITHUB_OUTPUT
           else
+            echo "No coverage files found"
             echo "percentage=N/A" >> $GITHUB_OUTPUT
           fi
 
