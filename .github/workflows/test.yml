@@ -5,6 +5,27 @@ on:
     branches: [main, develop]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      node_version:
+        description: 'Node.js version to test with'
+        required: false
+        default: '20.x'
+        type: choice
+        options:
+          - '18.x'
+          - '20.x'
+          - 'both'
+      run_coverage:
+        description: 'Generate code coverage report'
+        required: false
+        default: true
+        type: boolean
+      notify_discord:
+        description: 'Send Discord notification'
+        required: false
+        default: true
+        type: boolean
 
 jobs:
   test:
@@ -12,7 +33,11 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.x, 20.x]
+        node-version: ${{ 
+          github.event_name == 'workflow_dispatch' && github.event.inputs.node_version != 'both' 
+          ? fromJSON(format('["{0}"]', github.event.inputs.node_version))
+          : fromJSON('["18.x", "20.x"]')
+        }}
 
     steps:
       - name: Checkout code
@@ -30,12 +55,17 @@ jobs:
       #   run: npm run lint
 
       - name: Run unit tests
-        run: npm test -- --ci --coverage --watchAll=false
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.run_coverage }}" = "false" ]; then
+            npm test -- --ci --watchAll=false
+          else
+            npm test -- --ci --coverage --watchAll=false
+          fi
         continue-on-error: true
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4
-        if: matrix.node-version == '20.x'
+        if: matrix.node-version == '20.x' && (github.event_name != 'workflow_dispatch' || github.event.inputs.run_coverage == 'true')
         with:
           file: ./coverage/lcov.info
           flags: unittests
@@ -46,14 +76,14 @@ jobs:
 
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
-        if: matrix.node-version == '20.x'
+        if: matrix.node-version == '20.x' && (github.event_name != 'workflow_dispatch' || github.event.inputs.run_coverage == 'true')
         with:
           name: coverage-report
           path: coverage/
 
       - name: Notify Discord on Success
         uses: Ilshidur/action-discord@master
-        if: success() && matrix.node-version == '20.x'
+        if: success() && matrix.node-version == '20.x' && (github.event_name != 'workflow_dispatch' || github.event.inputs.notify_discord == 'true')
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         with:
@@ -64,12 +94,13 @@ jobs:
             **Commit:** ${{ github.sha }}
             **Actor:** ${{ github.actor }}
             **Workflow:** ${{ github.workflow }}
+            **Trigger:** ${{ github.event_name == 'workflow_dispatch' && '🔧 Manual Run' || '🔄 Automatic' }}
 
             🔗 [View Details](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
 
       - name: Notify Discord on Failure
         uses: Ilshidur/action-discord@master
-        if: failure() && matrix.node-version == '20.x'
+        if: failure() && matrix.node-version == '20.x' && (github.event_name != 'workflow_dispatch' || github.event.inputs.notify_discord == 'true')
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         with:
@@ -80,5 +111,6 @@ jobs:
             **Commit:** ${{ github.sha }}
             **Actor:** ${{ github.actor }}
             **Workflow:** ${{ github.workflow }}
+            **Trigger:** ${{ github.event_name == 'workflow_dispatch' && '🔧 Manual Run' || '🔄 Automatic' }}
 
             🔗 [View Details](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
