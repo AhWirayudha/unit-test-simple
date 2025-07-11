@@ -77,9 +77,38 @@ jobs:
           name: coverage-report
           path: coverage/
 
+      - name: Extract coverage percentage
+        id: coverage
+        if: matrix.node-version == '20.x' && (github.event_name != 'workflow_dispatch' || github.event.inputs.run_coverage == 'true')
+        run: |
+          if [ -f coverage/lcov-report/index.html ]; then
+            # Extract coverage percentage from HTML report
+            COVERAGE=$(grep -o 'headerCovTableEntryLo">[0-9.]*%' coverage/lcov-report/index.html | head -1 | grep -o '[0-9.]*' || echo "N/A")
+            echo "percentage=$COVERAGE" >> $GITHUB_OUTPUT
+            
+            # Extract coverage details from lcov.info
+            if [ -f coverage/lcov.info ]; then
+              LINES_FOUND=$(grep -c "^LF:" coverage/lcov.info | head -1 || echo "0")
+              LINES_HIT=$(grep -c "^LH:" coverage/lcov.info | head -1 || echo "0")
+              FUNCTIONS_FOUND=$(grep -c "^FNF:" coverage/lcov.info | head -1 || echo "0")
+              FUNCTIONS_HIT=$(grep -c "^FNH:" coverage/lcov.info | head -1 || echo "0")
+              BRANCHES_FOUND=$(grep -c "^BRF:" coverage/lcov.info | head -1 || echo "0")
+              BRANCHES_HIT=$(grep -c "^BRH:" coverage/lcov.info | head -1 || echo "0")
+              
+              echo "lines_found=$LINES_FOUND" >> $GITHUB_OUTPUT
+              echo "lines_hit=$LINES_HIT" >> $GITHUB_OUTPUT
+              echo "functions_found=$FUNCTIONS_FOUND" >> $GITHUB_OUTPUT
+              echo "functions_hit=$FUNCTIONS_HIT" >> $GITHUB_OUTPUT
+              echo "branches_found=$BRANCHES_FOUND" >> $GITHUB_OUTPUT
+              echo "branches_hit=$BRANCHES_HIT" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "percentage=N/A" >> $GITHUB_OUTPUT
+          fi
+
       - name: Notify Discord on Success
         uses: Ilshidur/action-discord@master
-        if: success() && matrix.node-version == '20.x' && (github.event_name != 'workflow_dispatch' || github.event.inputs.notify_discord == 'true')
+        if: success() && matrix.node-version == '20.x' && secrets.DISCORD_WEBHOOK != '' && (github.event_name != 'workflow_dispatch' || github.event.inputs.notify_discord == 'true')
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         with:
@@ -92,11 +121,14 @@ jobs:
             **Workflow:** ${{ github.workflow }}
             **Trigger:** ${{ github.event_name == 'workflow_dispatch' && '🔧 Manual Run' || '🔄 Automatic' }}
 
-            🔗 [View Details](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            � **Coverage:** ${{ steps.coverage.outputs.percentage != 'N/A' && format('{0}%', steps.coverage.outputs.percentage) || 'Coverage not generated' }}
+            ${{ steps.coverage.outputs.percentage != 'N/A' && format('📈 **Lines:** {0}/{1} | **Functions:** {2}/{3} | **Branches:** {4}/{5}', steps.coverage.outputs.lines_hit, steps.coverage.outputs.lines_found, steps.coverage.outputs.functions_hit, steps.coverage.outputs.functions_found, steps.coverage.outputs.branches_hit, steps.coverage.outputs.branches_found) || '' }}
+
+            �🔗 [View Details](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
 
       - name: Notify Discord on Failure
         uses: Ilshidur/action-discord@master
-        if: failure() && matrix.node-version == '20.x' && (github.event_name != 'workflow_dispatch' || github.event.inputs.notify_discord == 'true')
+        if: failure() && matrix.node-version == '20.x' && secrets.DISCORD_WEBHOOK != '' && (github.event_name != 'workflow_dispatch' || github.event.inputs.notify_discord == 'true')
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         with:
@@ -108,5 +140,8 @@ jobs:
             **Actor:** ${{ github.actor }}
             **Workflow:** ${{ github.workflow }}
             **Trigger:** ${{ github.event_name == 'workflow_dispatch' && '🔧 Manual Run' || '🔄 Automatic' }}
+
+            📊 **Coverage:** ${{ steps.coverage.outputs.percentage != 'N/A' && format('{0}%', steps.coverage.outputs.percentage) || 'Coverage not generated' }}
+            ${{ steps.coverage.outputs.percentage != 'N/A' && format('📈 **Lines:** {0}/{1} | **Functions:** {2}/{3} | **Branches:** {4}/{5}', steps.coverage.outputs.lines_hit, steps.coverage.outputs.lines_found, steps.coverage.outputs.functions_hit, steps.coverage.outputs.functions_found, steps.coverage.outputs.branches_hit, steps.coverage.outputs.branches_found) || '' }}
 
             🔗 [View Details](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
