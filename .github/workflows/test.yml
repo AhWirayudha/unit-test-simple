@@ -2,27 +2,27 @@ name: Run Unit Tests
 
 on:
   push:
-    branches: [main, develop, feature/*, hotfix/*]  # Runs on more branch patterns
+    branches: [main, develop, feature/*, hotfix/*] # Runs on more branch patterns
   pull_request:
-    branches: [main, develop]                       # PRs to main and develop
+    branches: [main, develop] # PRs to main and develop
   workflow_dispatch:
     inputs:
       node_version:
-        description: 'Node.js version to test with'
+        description: "Node.js version to test with"
         required: false
-        default: '20.x'
+        default: "20.x"
         type: choice
         options:
-          - '18.x'
-          - '20.x'
-          - 'both'
+          - "18.x"
+          - "20.x"
+          - "both"
       run_coverage:
-        description: 'Generate code coverage report'
+        description: "Generate code coverage report"
         required: false
         default: true
         type: boolean
       notify_discord:
-        description: 'Send Discord notification'
+        description: "Send Discord notification"
         required: false
         default: true
         type: boolean
@@ -33,11 +33,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: ${{ 
-          github.event_name == 'workflow_dispatch' && github.event.inputs.node_version != 'both' 
-          ? fromJSON(format('["{0}"]', github.event.inputs.node_version))
-          : fromJSON('["18.x", "20.x"]')
-        }}
+        node-version: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.node_version != 'both' && fromJSON(format('["{0}"]', github.event.inputs.node_version)) || fromJSON('["18.x", "20.x"]') }}
 
     steps:
       - name: Checkout code
