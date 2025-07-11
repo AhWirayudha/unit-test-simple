@@ -128,3 +128,7 @@ update-profile/
 
 - **Purpose:** This project serves as a template or a starting point for building full-stack Next.js applications with a focus on best practices for testing and CI/CD.
 - **Extensibility:** The project can be easily extended by adding more pages, API routes, and components. The existing structure provides a clear separation of concerns, making it scalable for larger applications.
+
+## Notifications to Discord
+
+<img width="566" height="340" alt="image" src="https://github.com/user-attachments/assets/8176ce6a-8f77-4f59-8eba-a3a3f921238d" />
