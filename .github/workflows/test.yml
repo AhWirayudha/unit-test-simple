@@ -50,3 +50,35 @@ jobs:
         with:
           name: coverage-report
           path: coverage/
+
+      - name: Notify Discord on Success
+        uses: Ilshidur/action-discord@master
+        if: success() && matrix.node-version == '20.x'
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        with:
+          args: |
+            ✅ **Tests Passed!** 
+            **Repository:** ${{ github.repository }}
+            **Branch:** ${{ github.ref_name }}
+            **Commit:** ${{ github.sha }}
+            **Actor:** ${{ github.actor }}
+            **Workflow:** ${{ github.workflow }}
+
+            🔗 [View Details](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+
+      - name: Notify Discord on Failure
+        uses: Ilshidur/action-discord@master
+        if: failure() && matrix.node-version == '20.x'
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        with:
+          args: |
+            ❌ **Tests Failed!** 
+            **Repository:** ${{ github.repository }}
+            **Branch:** ${{ github.ref_name }}
+            **Commit:** ${{ github.sha }}
+            **Actor:** ${{ github.actor }}
+            **Workflow:** ${{ github.workflow }}
+
+            🔗 [View Details](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})

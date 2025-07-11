@@ -1,0 +1,41 @@
+# Alternative Telegram notification steps (replace Discord steps with these)
+
+- name: Notify Telegram on Success
+  uses: appleboy/telegram-action@master
+  if: success() && matrix.node-version == '20.x'
+  with:
+    to: ${{ secrets.TELEGRAM_CHAT_ID }}
+    token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+    message: |
+      ✅ Tests Passed!
+
+      Repository: ${{ github.repository }}
+      Branch: ${{ github.ref_name }}
+      Commit: ${{ github.sha }}
+      Actor: ${{ github.actor }}
+
+      View Details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+- name: Notify Telegram on Failure
+  uses: appleboy/telegram-action@master
+  if: failure() && matrix.node-version == '20.x'
+  with:
+    to: ${{ secrets.TELEGRAM_CHAT_ID }}
+    token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+    message: |
+      ❌ Tests Failed!
+
+      Repository: ${{ github.repository }}
+      Branch: ${{ github.ref_name }}
+      Commit: ${{ github.sha }}
+      Actor: ${{ github.actor }}
+
+      View Details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+# For Telegram setup:
+# 1. Create a bot with @BotFather
+# 2. Get your bot token
+# 3. Get your chat ID (message @userinfobot)
+# 4. Add these as GitHub secrets:
+#    - TELEGRAM_BOT_TOKEN
+#    - TELEGRAM_CHAT_ID
