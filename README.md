@@ -131,4 +131,5 @@ update-profile/
 
 ## Notifications to Discord
 
-<img width="566" height="340" alt="image" src="https://github.com/user-attachments/assets/8176ce6a-8f77-4f59-8eba-a3a3f921238d" />
+<img width="437" height="598" alt="image" src="https://github.com/user-attachments/assets/86591a25-c972-4be5-8ec9-a9c80cf56314" />
+
