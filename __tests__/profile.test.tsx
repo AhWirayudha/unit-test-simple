@@ -14,6 +14,10 @@ jest.mock("react-hot-toast", () => ({
   },
 }));
 
+// Import the mocked toast
+import { toast } from "react-hot-toast";
+const mockToast = toast as jest.Mocked<typeof toast>;
+
 global.fetch = jest.fn(() =>
   Promise.resolve({
     json: () => Promise.resolve({ success: true }),
@@ -25,6 +29,10 @@ describe("ProfilePage", () => {
   beforeEach(() => {
     (fetch as jest.Mock).mockClear();
     jest.clearAllMocks();
+    // Clear the mock toast functions
+    mockToast.loading.mockClear();
+    mockToast.success.mockClear();
+    mockToast.error.mockClear();
   });
 
   it("renders all form fields", () => {
@@ -86,18 +94,12 @@ describe("ProfilePage", () => {
   it("updates input values when typed", () => {
     render(<ProfilePage />);
 
-    const usernameInput = screen.getByLabelText(
-      /Username/i
-    ) as HTMLInputElement;
-    const fullNameInput = screen.getByLabelText(
-      /Full Name/i
-    ) as HTMLInputElement;
-    const emailInput = screen.getByLabelText(/Email/i) as HTMLInputElement;
-    const phoneInput = screen.getByLabelText(/Phone/i) as HTMLInputElement;
-    const birthDateInput = screen.getByLabelText(
-      /Birth Date/i
-    ) as HTMLInputElement;
-    const bioInput = screen.getByLabelText(/Bio/i) as HTMLTextAreaElement;
+    const usernameInput = screen.getByLabelText(/Username/i);
+    const fullNameInput = screen.getByLabelText(/Full Name/i);
+    const emailInput = screen.getByLabelText(/Email/i);
+    const phoneInput = screen.getByLabelText(/Phone/i);
+    const birthDateInput = screen.getByLabelText(/Birth Date/i);
+    const bioInput = screen.getByLabelText(/Bio/i);
 
     fireEvent.change(usernameInput, { target: { value: "testuser" } });
     fireEvent.change(fullNameInput, { target: { value: "Test User" } });
@@ -106,12 +108,12 @@ describe("ProfilePage", () => {
     fireEvent.change(birthDateInput, { target: { value: "1990-01-01" } });
     fireEvent.change(bioInput, { target: { value: "Test bio" } });
 
-    expect(usernameInput.value).toBe("testuser");
-    expect(fullNameInput.value).toBe("Test User");
-    expect(emailInput.value).toBe("test@example.com");
-    expect(phoneInput.value).toBe("1234567890");
-    expect(birthDateInput.value).toBe("1990-01-01");
-    expect(bioInput.value).toBe("Test bio");
+    expect(usernameInput).toHaveValue("testuser");
+    expect(fullNameInput).toHaveValue("Test User");
+    expect(emailInput).toHaveValue("test@example.com");
+    expect(phoneInput).toHaveValue("1234567890");
+    expect(birthDateInput).toHaveValue("1990-01-01");
+    expect(bioInput).toHaveValue("Test bio");
   });
 
   it("submits valid form and shows success message", async () => {

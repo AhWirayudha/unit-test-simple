@@ -3,12 +3,14 @@ import { render, fireEvent, screen, waitFor } from "@testing-library/react";
 import LoginPage from "../src/app/login/page";
 
 // Mock react-hot-toast
+const mockToast = {
+  loading: jest.fn(() => "toast-id"),
+  success: jest.fn(),
+  error: jest.fn(),
+};
+
 jest.mock("react-hot-toast", () => ({
-  toast: {
-    loading: jest.fn(() => "toast-id"),
-    success: jest.fn(),
-    error: jest.fn(),
-  },
+  toast: mockToast,
 }));
 
 // Mock fetch
@@ -18,6 +20,10 @@ describe("LoginPage", () => {
   beforeEach(() => {
     (fetch as jest.Mock).mockClear();
     jest.clearAllMocks();
+    // Clear the mock toast functions
+    mockToast.loading.mockClear();
+    mockToast.success.mockClear();
+    mockToast.error.mockClear();
   });
 
   it("should render the login form", () => {
@@ -191,13 +197,12 @@ describe("LoginPage", () => {
   });
 
   it("should handle API error with default message", async () => {
-    const { toast } = require("react-hot-toast");
     const mockResponse = {
       ok: false,
       json: jest.fn().mockResolvedValue({}), // No message property
     };
     (fetch as jest.MockedFunction<typeof fetch>).mockResolvedValue(
-      mockResponse as any
+      mockResponse as unknown as Response
     );
 
     render(<LoginPage />);
@@ -210,7 +215,7 @@ describe("LoginPage", () => {
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith("An error occurred.", {
+      expect(mockToast.error).toHaveBeenCalledWith("An error occurred.", {
         id: "toast-id",
       });
     });
@@ -236,13 +241,12 @@ describe("LoginPage", () => {
   });
 
   it("should show loading toast during API call", async () => {
-    const { toast } = require("react-hot-toast");
     const mockResponse = {
       ok: true,
       json: jest.fn().mockResolvedValue({ message: "Login successful!" }),
     };
     (fetch as jest.MockedFunction<typeof fetch>).mockResolvedValue(
-      mockResponse as any
+      mockResponse as unknown as Response
     );
 
     render(<LoginPage />);
@@ -254,7 +258,7 @@ describe("LoginPage", () => {
     fireEvent.change(passwordInput, { target: { value: "password123" } });
     fireEvent.click(submitButton);
 
-    expect(toast.loading).toHaveBeenCalledWith("Logging in...");
+    expect(mockToast.loading).toHaveBeenCalledWith("Logging in...");
   });
 
   it("should clear previous errors when form becomes valid", async () => {
@@ -277,7 +281,7 @@ describe("LoginPage", () => {
       json: jest.fn().mockResolvedValue({ message: "Login successful!" }),
     };
     (fetch as jest.MockedFunction<typeof fetch>).mockResolvedValue(
-      mockResponse as any
+      mockResponse as unknown as Response
     );
 
     fireEvent.click(submitButton);
@@ -310,7 +314,7 @@ describe("LoginPage", () => {
       json: jest.fn().mockResolvedValue({ message: "Login successful!" }),
     };
     (fetch as jest.MockedFunction<typeof fetch>).mockResolvedValue(
-      mockResponse as any
+      mockResponse as unknown as Response
     );
 
     render(<LoginPage />);

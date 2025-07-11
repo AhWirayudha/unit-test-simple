@@ -3,12 +3,14 @@ import { render, fireEvent, screen, waitFor } from "@testing-library/react";
 import ChangePasswordPage from "../src/app/change-password/page";
 
 // Mock react-hot-toast
+const mockToast = {
+  loading: jest.fn(() => "toast-id"),
+  success: jest.fn(),
+  error: jest.fn(),
+};
+
 jest.mock("react-hot-toast", () => ({
-  toast: {
-    loading: jest.fn(() => "toast-id"),
-    success: jest.fn(),
-    error: jest.fn(),
-  },
+  toast: mockToast,
 }));
 
 // Mock fetch
@@ -18,6 +20,10 @@ describe("ChangePasswordPage", () => {
   beforeEach(() => {
     (fetch as jest.Mock).mockClear();
     jest.clearAllMocks();
+    // Clear the mock toast functions
+    mockToast.loading.mockClear();
+    mockToast.success.mockClear();
+    mockToast.error.mockClear();
   });
 
   it("should render the change password form", () => {
@@ -192,8 +198,6 @@ describe("ChangePasswordPage", () => {
   });
 
   it("should submit form successfully", async () => {
-    const { toast } = require("react-hot-toast");
-
     (fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
       json: async () => ({
@@ -238,16 +242,14 @@ describe("ChangePasswordPage", () => {
       });
     });
 
-    expect(toast.loading).toHaveBeenCalledWith("Changing password...");
-    expect(toast.success).toHaveBeenCalledWith(
+    expect(mockToast.loading).toHaveBeenCalledWith("Changing password...");
+    expect(mockToast.success).toHaveBeenCalledWith(
       "Password changed successfully!",
       { id: "toast-id" }
     );
   });
 
   it("should handle API errors", async () => {
-    const { toast } = require("react-hot-toast");
-
     (fetch as jest.Mock).mockResolvedValueOnce({
       ok: false,
       json: async () => ({ message: "Current password is incorrect." }),
@@ -275,7 +277,7 @@ describe("ChangePasswordPage", () => {
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith(
+      expect(mockToast.error).toHaveBeenCalledWith(
         "Current password is incorrect.",
         { id: "toast-id" }
       );
@@ -283,8 +285,6 @@ describe("ChangePasswordPage", () => {
   });
 
   it("should handle network errors", async () => {
-    const { toast } = require("react-hot-toast");
-
     (fetch as jest.Mock).mockRejectedValueOnce(new Error("Network error"));
 
     render(<ChangePasswordPage />);
@@ -309,7 +309,7 @@ describe("ChangePasswordPage", () => {
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith(
+      expect(mockToast.error).toHaveBeenCalledWith(
         "Network error. Please try again.",
         { id: "toast-id" }
       );
@@ -640,8 +640,7 @@ describe("ChangePasswordPage", () => {
       });
     });
 
-    const { toast } = require("react-hot-toast");
-    expect(toast.success).toHaveBeenCalled();
+    expect(mockToast.success).toHaveBeenCalled();
   });
 
   it("should handle error response without message", async () => {
@@ -672,8 +671,7 @@ describe("ChangePasswordPage", () => {
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      const { toast } = require("react-hot-toast");
-      expect(toast.error).toHaveBeenCalledWith("An error occurred.", {
+      expect(mockToast.error).toHaveBeenCalledWith("An error occurred.", {
         id: "toast-id",
       });
     });

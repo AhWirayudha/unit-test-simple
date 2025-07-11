@@ -189,8 +189,15 @@ describe("POST /api/password", () => {
   });
 
   it("should return 400 if request body is invalid JSON", async () => {
+    // Suppress console.error for this test since we're intentionally causing an error
+    const originalConsoleError = console.error;
+    console.error = jest.fn();
+
     const request = new NextRequest("http://localhost/api/password", {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: "invalid json",
     });
 
@@ -198,5 +205,8 @@ describe("POST /api/password", () => {
     expect(response.status).toBe(400);
     const data = await response.json();
     expect(data.message).toBe("Invalid request format.");
+
+    // Restore console.error
+    console.error = originalConsoleError;
   });
 });
