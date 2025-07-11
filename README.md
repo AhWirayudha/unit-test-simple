@@ -1,5 +1,12 @@
 # Update-Profile: A Fullstack Next.js Project
 
+[![codecov](https://codecov.io/gh/AhWirayudha/unit-test-simple/graph/badge.svg?token=YOUR_TOKEN_HERE)](https://codecov.io/gh/AhWirayudha/unit-test-simple)
+[![CI Tests](https://github.com/AhWirayudha/unit-test-simple/actions/workflows/test.yml/badge.svg)](https://github.com/AhWirayudha/unit-test-simple/actions/workflows/test.yml)
+
+## Code Coverage
+
+[![Codecov](https://codecov.io/gh/AhWirayudha/unit-test-simple/graphs/icicle.svg?token=YOUR_TOKEN_HERE)](https://codecov.io/gh/AhWirayudha/unit-test-simple)
+
 ## Project Description
 
 This project is a sample full-stack application built with Next.js (App Router). It includes a simple frontend with login and profile update forms, a mock backend with API routes, and a complete testing and CI/CD setup.
